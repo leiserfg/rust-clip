@@ -1,5 +1,8 @@
 use clip_sys::*;
 use failure::{err_msg, Error};
+use std::result::Result as StdResult;
+
+type Result<T> = StdResult<T, Error>;
 
 #[derive(Debug)]
 pub enum ClipFormat {
@@ -35,7 +38,7 @@ impl Clip {
     }
   }
 
-  pub fn set_text(text: String) -> Result<(), Error> {
+  pub fn set_text(text: String) -> Result<()> {
     use std::ffi::CString;
 
     let c_string = CString::new(text)?;
@@ -57,7 +60,7 @@ impl Clip {
     }
   }
 
-  pub fn get_text() -> Result<String, Error> {
+  pub fn get_text() -> Result<String> {
     use std::ffi::CStr;
 
     unsafe {
@@ -76,6 +79,41 @@ impl Clip {
       }
     }
   }
+
+  pub fn get_image() -> Result<ClipImage> {
+    unsafe {
+      let ptr = clip_get_image();
+      if ptr.is_null() {
+        Err(err_msg("couldn't get clipboard image"))
+      } else {
+        Ok(ClipImage { ptr })
+      }
+    }
+  }
+}
+
+pub struct ClipImage {
+  ptr: CClipImage,
+}
+
+impl ClipImage {
+  pub fn get_spec(&self) -> CClipImageSpec {
+    unsafe { clip_get_image_spec(self.ptr) }
+  }
+
+  pub fn get_data(&self) {
+    let _data = unsafe { clip_get_image_data(self.ptr) };
+
+    unimplemented!()
+  }
+}
+
+impl Drop for ClipImage {
+  fn drop(&mut self) {
+    unsafe {
+      clip_delete_image(self.ptr);
+    }
+  }
 }
 
 #[test]
@@ -89,4 +127,10 @@ fn test_text() {
 #[test]
 fn test_get_format() {
   println!("{:#?}", Clip::get_format());
+}
+
+#[test]
+fn test_get_image() {
+  let clip_image = Clip::get_image().unwrap();
+  println!("{:#?}", clip_image.get_spec());
 }
