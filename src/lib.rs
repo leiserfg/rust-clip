@@ -1,9 +1,40 @@
 use clip_sys::*;
 use failure::{err_msg, Error};
 
+#[derive(Debug)]
+pub enum ClipFormat {
+  Empty,
+  Text,
+  Image,
+}
+
 pub struct Clip;
 
 impl Clip {
+  pub fn has_format(format: ClipFormat) -> bool {
+    unsafe {
+      let clip_format = match format {
+        ClipFormat::Empty => clip_empty_format(),
+        ClipFormat::Text => clip_text_format(),
+        ClipFormat::Image => clip_image_format(),
+      };
+
+      clip_has(clip_format)
+    }
+  }
+
+  pub fn get_format() -> ClipFormat {
+    if Clip::has_format(ClipFormat::Empty) {
+      ClipFormat::Empty
+    } else if Clip::has_format(ClipFormat::Text) {
+      ClipFormat::Text
+    } else if Clip::has_format(ClipFormat::Image) {
+      ClipFormat::Image
+    } else {
+      unreachable!("clip didn't have any format")
+    }
+  }
+
   pub fn set_text(text: String) -> Result<(), Error> {
     use std::ffi::CString;
 
@@ -53,4 +84,9 @@ fn test_text() {
   Clip::set_text(s.clone()).unwrap();
 
   assert_eq!(Clip::get_text().unwrap(), s);
+}
+
+#[test]
+fn test_get_format() {
+  println!("{:#?}", Clip::get_format());
 }
