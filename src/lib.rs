@@ -1,3 +1,6 @@
+mod clip_image;
+
+use self::clip_image::ClipImage;
 use clip_sys::*;
 use failure::{err_msg, Error};
 use std::result::Result as StdResult;
@@ -86,32 +89,8 @@ impl Clip {
       if ptr.is_null() {
         Err(err_msg("couldn't get clipboard image"))
       } else {
-        Ok(ClipImage { ptr })
+        Ok(ClipImage::from_ptr(ptr))
       }
-    }
-  }
-}
-
-pub struct ClipImage {
-  ptr: CClipImage,
-}
-
-impl ClipImage {
-  pub fn get_spec(&self) -> CClipImageSpec {
-    unsafe { clip_get_image_spec(self.ptr) }
-  }
-
-  pub fn get_data(&self) {
-    let _data = unsafe { clip_get_image_data(self.ptr) };
-
-    unimplemented!()
-  }
-}
-
-impl Drop for ClipImage {
-  fn drop(&mut self) {
-    unsafe {
-      clip_delete_image(self.ptr);
     }
   }
 }

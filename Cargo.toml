@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 clip-sys = { path = "../rust-clip-sys" }
 failure = "0.1.5"
+image = "0.21.0"
