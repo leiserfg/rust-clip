@@ -5,3 +5,5 @@ authors = ["SpiralP <spiral.palmer@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+clip-sys = { path = "../rust-clip-sys" }
+failure = "0.1.5"
