@@ -21,7 +21,7 @@ fn main() {
     ClipFormat::Image => {
       {
         let image = Clip::get_image().unwrap();
-        image.write_as_png(&mut File::create("test.png").unwrap());
+        image.write_png(&mut File::create("test.png").unwrap());
       }
 
       println!("wrote to test.png");
