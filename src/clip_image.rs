@@ -53,15 +53,15 @@ impl<'a> ClipImage {
     unsafe { std::slice::from_raw_parts(clip_get_image_data(self.ptr) as *const u8, len) }
   }
 
-  pub fn write_as_png<W: Write>(&self, writer: &mut W) {
+  pub fn write_png<W: Write>(&self, writer: &mut W) {
     self.write_from_encoder(PNGEncoder::new(writer));
   }
 
-  pub fn write_as_jpeg<W: Write>(&self, writer: &mut W) {
+  pub fn write_jpeg<W: Write>(&self, writer: &mut W) {
     self.write_from_encoder(JPEGEncoder::new(writer));
   }
 
-  pub fn write_as_bmp<W: Write>(&self, writer: &mut W) {
+  pub fn write_bmp<W: Write>(&self, writer: &mut W) {
     self.write_from_encoder(BMPEncoder::new(writer));
   }
 
@@ -108,7 +108,7 @@ fn test_write_image_as_png() {
   use std::fs::File;
 
   let image = Clip::get_image().unwrap();
-  image.write_as_png(&mut File::create("test.png").unwrap());
+  image.write_png(&mut File::create("test.png").unwrap());
 }
 
 #[test]
@@ -117,5 +117,5 @@ fn test_write_image_as_jpeg() {
   use std::fs::File;
 
   let image = Clip::get_image().unwrap();
-  image.write_as_jpeg(&mut File::create("test.jpeg").unwrap());
+  image.write_jpeg(&mut File::create("test.jpeg").unwrap());
 }
