@@ -71,26 +71,39 @@ impl<'a> ClipImage {
 
     println!("{:#?}", clip_spec);
 
-    assert!(clip_spec.bits_per_pixel == 32);
+    let bits_per_pixel = clip_spec.bits_per_pixel;
+    let bytes_in_pixel = (bits_per_pixel / 8) as usize;
+    let width = clip_spec.width as u32;
+    let height = clip_spec.height as u32;
 
-    assert!(clip_spec.red_shift == 0);
-    assert!(clip_spec.green_shift == 8);
-    assert!(clip_spec.blue_shift == 16);
-    assert!(clip_spec.alpha_shift == 24);
+    let color_type =
+      color_type_from_spec(&clip_spec).expect("color_type_from_spec unhandled spec type");
 
-    assert!(clip_spec.red_mask == 0b1111_1111);
-    assert!(clip_spec.green_mask == 0b1111_1111 << 8);
-    assert!(clip_spec.blue_mask == 0b1111_1111 << 16);
-    assert!(clip_spec.alpha_mask == 0b1111_1111 << 24);
+    match color_type {
+      ColorType::BGRA(_) | ColorType::BGR(_) => {
+        let mut converted_data = clip_data.to_vec();
+        for i in (0..converted_data.len()).step_by(bytes_in_pixel) {
+          converted_data.swap(i, i + 2); // swap blue and red
+        }
 
-    encoder
-      .encode(
-        clip_data,
-        clip_spec.width as u32,
-        clip_spec.height as u32,
-        color_type_from_spec(clip_spec).expect("color_type_from_spec"),
-      )
-      .expect("encode");
+        let color_type = if bytes_in_pixel == 4 {
+          // we have alpha
+          ColorType::RGBA(8)
+        } else {
+          ColorType::RGB(8)
+        };
+
+        encoder
+          .encode(&converted_data, width, height, color_type)
+          .expect("encode");
+      }
+
+      _ => {
+        encoder
+          .encode(clip_data, width, height, color_type)
+          .expect("encode");
+      }
+    }
   }
 }
 
@@ -102,9 +115,7 @@ impl Drop for ClipImage {
   }
 }
 
-fn color_type_from_spec(spec: CClipImageSpec) -> Option<ColorType> {
-  let bit_depth = (spec.bits_per_pixel / 4) as u8; // is this correct?
-
+fn color_type_from_spec(spec: &CClipImageSpec) -> Option<ColorType> {
   Some(
     match (
       spec.red_shift,
@@ -112,11 +123,11 @@ fn color_type_from_spec(spec: CClipImageSpec) -> Option<ColorType> {
       spec.blue_shift,
       spec.alpha_shift,
     ) {
-      (0, 8, 16, 24) => ColorType::RGBA(bit_depth),
-      (0, 8, 16, 0) => ColorType::RGB(bit_depth),
+      (0, 8, 16, 24) => ColorType::RGBA((spec.bits_per_pixel / 4) as u8),
+      (0, 8, 16, 0) => ColorType::RGB((spec.bits_per_pixel / 3) as u8),
 
-      (16, 8, 0, 24) => ColorType::BGRA(bit_depth),
-      (16, 8, 0, 0) => ColorType::BGR(bit_depth),
+      (16, 8, 0, 24) => ColorType::BGRA((spec.bits_per_pixel / 4) as u8),
+      (16, 8, 0, 0) => ColorType::BGR((spec.bits_per_pixel / 3) as u8),
 
       _ => return None,
     },
