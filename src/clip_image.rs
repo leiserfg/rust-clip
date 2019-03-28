@@ -88,9 +88,9 @@ impl<'a> ClipImage {
         clip_data,
         clip_spec.width as u32,
         clip_spec.height as u32,
-        ColorType::RGBA(8), // TODO check spec.bits_per_pixel
+        color_type_from_spec(clip_spec).expect("color_type_from_spec"),
       )
-      .unwrap();
+      .expect("encode");
   }
 }
 
@@ -100,6 +100,27 @@ impl Drop for ClipImage {
       clip_delete_image(self.ptr);
     }
   }
+}
+
+fn color_type_from_spec(spec: CClipImageSpec) -> Option<ColorType> {
+  let bit_depth = (spec.bits_per_pixel / 4) as u8; // is this correct?
+
+  Some(
+    match (
+      spec.red_shift,
+      spec.green_shift,
+      spec.blue_shift,
+      spec.alpha_shift,
+    ) {
+      (0, 8, 16, 24) => ColorType::RGBA(bit_depth),
+      (0, 8, 16, 0) => ColorType::RGB(bit_depth),
+
+      (16, 8, 0, 24) => ColorType::BGRA(bit_depth),
+      (16, 8, 0, 0) => ColorType::BGR(bit_depth),
+
+      _ => return None,
+    },
+  )
 }
 
 #[test]
