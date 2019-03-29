@@ -4,7 +4,7 @@ rust:
 script:
   - echo not testing
 after_success: |
-  cargo doc \
+  cargo doc --no-deps \
   && echo '<meta http-equiv=refresh content=0;url=clip/index.html>' > target/doc/index.html && \
   sudo pip install ghp-import && \
   ghp-import -n target/doc && \
