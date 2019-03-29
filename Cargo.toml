@@ -5,6 +5,6 @@ authors = ["SpiralP <spiral.palmer@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-clip-sys = { path = "../rust-clip-sys" }
+clip-sys = { git = "https://github.com/SpiralP/rust-clip-sys" }
 failure = "0.1.5"
 image = "0.21.0"
