@@ -1,4 +1,6 @@
-use clip_sys::*;
+use clip_sys::{
+  clip_delete_image, clip_get_image_data, clip_get_image_spec, CClipImage, CClipImageSpec,
+};
 use image::bmp::BMPEncoder;
 use image::jpeg::JPEGEncoder;
 use image::png::PNGEncoder;

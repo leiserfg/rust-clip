@@ -1,7 +1,10 @@
 mod clip_image;
 
-use self::clip_image::ClipImage;
-use clip_sys::*;
+pub use self::clip_image::ClipImage;
+use clip_sys::{
+  clip_delete_text, clip_empty_format, clip_get_image, clip_get_text, clip_has, clip_image_format,
+  clip_set_text, clip_text_format,
+};
 use failure::{err_msg, Error};
 use std::result::Result as StdResult;
 
