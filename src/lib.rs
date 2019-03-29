@@ -6,9 +6,6 @@ use clip_sys::{
   clip_set_text, clip_text_format,
 };
 use failure::{err_msg, Error};
-use std::result::Result as StdResult;
-
-type Result<T> = StdResult<T, Error>;
 
 #[derive(Debug)]
 pub enum ClipFormat {
@@ -32,19 +29,19 @@ impl Clip {
     }
   }
 
-  pub fn get_format() -> ClipFormat {
-    if Clip::has_format(ClipFormat::Empty) {
+  pub fn get_format() -> Option<ClipFormat> {
+    Some(if Clip::has_format(ClipFormat::Empty) {
       ClipFormat::Empty
     } else if Clip::has_format(ClipFormat::Text) {
       ClipFormat::Text
     } else if Clip::has_format(ClipFormat::Image) {
       ClipFormat::Image
     } else {
-      unreachable!("clip didn't have any format")
-    }
+      return None;
+    })
   }
 
-  pub fn set_text(text: String) -> Result<()> {
+  pub fn set_text(text: String) -> Result<(), Error> {
     use std::ffi::CString;
 
     let c_string = CString::new(text)?;
@@ -66,7 +63,7 @@ impl Clip {
     }
   }
 
-  pub fn get_text() -> Result<String> {
+  pub fn get_text() -> Result<String, Error> {
     use std::ffi::CStr;
 
     unsafe {
@@ -86,7 +83,7 @@ impl Clip {
     }
   }
 
-  pub fn get_image() -> Result<ClipImage> {
+  pub fn get_image() -> Result<ClipImage, Error> {
     unsafe {
       let ptr = clip_get_image();
       if ptr.is_null() {
@@ -108,11 +105,16 @@ fn test_text() {
 
 #[test]
 fn test_get_format() {
-  println!("{:#?}", Clip::get_format());
+  println!("{:#?}", Clip::get_format().unwrap());
 }
 
 #[test]
 fn test_get_image() {
+  if !Clip::has_format(ClipFormat::Image) {
+    eprintln!("skipping get_image test, no image in clipboard");
+    return;
+  }
+
   let clip_image = Clip::get_image().unwrap();
   println!("{:#?}", clip_image.get_spec());
 }
