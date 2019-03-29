@@ -72,8 +72,6 @@ impl<'a> ClipImage {
     let clip_spec = self.get_spec();
     let clip_data = self.get_data();
 
-    println!("{:#?}", clip_spec);
-
     let bits_per_pixel = clip_spec.bits_per_pixel;
     let bytes_in_pixel = (bits_per_pixel / 8) as usize;
     let width = clip_spec.width as u32;
